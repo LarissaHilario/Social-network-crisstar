@@ -1,6 +1,12 @@
-# red_social
+# red_social Crisstar 
 
-Red social
+The app is a firebase practice, firebase authentication, cloud database.
+![Imagen de WhatsApp 2024-06-04 a las 19 55 37_4fcf94cc](https://github.com/LarissaHilario/Social-network-crisstar/assets/74081339/a2df3f90-bb51-4d6d-890a-a2255ea96518)
+
+
+![Imagen de WhatsApp 2024-06-04 a las 19 55 37_e608f4d7](https://github.com/LarissaHilario/Social-network-crisstar/assets/74081339/4e9d5e44-17af-493e-aee8-1a84e4d10d9e)
+![Home](https://github.com/LarissaHilario/Social-network-crisstar/assets/74081339/c4b22804-37a2-4571-90c0-e96e385a6899)
+
 
 ## Getting Started
 
