@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "739727768909",
+    "firebase_url": "https://api-moviles-a937b-default-rtdb.firebaseio.com",
+    "project_id": "api-moviles-a937b",
+    "storage_bucket": "api-moviles-a937b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:739727768909:android:0e518c2dab5b17de3e4b04",
+        "android_client_info": {
+          "package_name": "com.example.red_social"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCgXTxxfzhkL0o3D5OcSsBSCznmi-BW4w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
