@@ -19,7 +19,7 @@ void main() async {
   final authUseCase = AuthUseCase(authRepository);
 
   runApp(
-    
+
     MultiProvider(providers: [
       ChangeNotifierProvider(create: (_) => Auth1Provider(authUseCase)),
     ],
@@ -34,21 +34,21 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (context) => GetIt.I<PostProvider>()
-            ..getPosts('post')
+        providers: [
+          ChangeNotifierProvider(
+              create: (context) => GetIt.I<PostProvider>()
+                ..getPosts('post')
 
-        ),
-      ],
-    child : MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Red Social',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyInitPage(),
-    )
+          ),
+        ],
+        child : MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Red Social',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          home: const MyInitPage(),
+        )
     );
   }
 }

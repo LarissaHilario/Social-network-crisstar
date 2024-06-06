@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -19,7 +18,14 @@ class FirebaseConnection {
         },
       ),
     );
-    print(posts);
+    print("hola $posts");
     return posts;
+  }
+  Future<void> addPostToCollection(String collectionName, PostModel post) async {
+    try {
+      await db.collection(collectionName).add(post.toMap());
+    } catch (e) {
+      throw Exception("Error al agregar el post a la colección: $e");
+    }
   }
 }

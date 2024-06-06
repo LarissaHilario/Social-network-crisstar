@@ -14,4 +14,14 @@ class PostRepositoryImpl extends PostRepository {
     print(postList);
     return postList;
   }
+
+  @override
+  Future<void> addPostToCollection(String collectionName, PostModel post) async {
+    try {
+      await _postFirestore.addPostToCollection(collectionName, post);
+    } catch (e) {
+      throw Exception("Error al agregar el post a la colección: $e");
+    }
+  }
+
 }
