@@ -1,14 +1,21 @@
+import 'dart:async';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:red_social/domain/models/Post_model.dart';
+import 'package:video_player/video_player.dart';
+late AudioPlayer _audioPlayer;
 
 class PostCardPage extends StatelessWidget {
   PostCardPage(this._postList, {Key? key}) : super(key: key);
 
   final List<PostModel> _postList;
 
+
   @override
   Widget build(BuildContext context) {
+    _audioPlayer = AudioPlayer();
     return Container(
       margin: const EdgeInsets.all(10.0),
       padding: const EdgeInsets.all(10.0),
@@ -50,26 +57,36 @@ class PostCardPage extends StatelessWidget {
                                     ),
                                   ]),
                             ]),
+                            post.isVideo
+                                ? _DisplayVideo(videoUrl: post.img)
+                                :  GestureDetector(
+                        onTap: () {
+                        _playSong(post.songUrl);
+                        },
+                        child:
+
                             Align(
-                              alignment: Alignment.center,
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                    right: 5, top: 8, bottom: 8),
-                                child: SizedBox(
-                                  width: 312,
-                                  height: 200,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    child: Image(
-                                      image: NetworkImage(post.img),
-                                      fit: BoxFit.fill,
+                                    alignment: Alignment.center,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                          right: 5, top: 8, bottom: 8),
+                                      child: SizedBox(
+                                        width: 312,
+                                        height: 200,
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                          child: Image(
+                                            image: NetworkImage(post.img),
+                                            fit: BoxFit.fill,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(
+                              padding: const EdgeInsets.only(
                                   right: 14, top: 8, bottom: 8, left: 14),
                               child: Text(
                                 post.descripcion,
@@ -86,6 +103,101 @@ class PostCardPage extends StatelessWidget {
                       }))
             ])
           : CircularProgressIndicator(),
+    );
+  }
+}
+void _playSong(String songUrl) async {
+  try {
+    var url = Uri.parse(songUrl);
+    Source audioSource = UrlSource(songUrl);
+    await _audioPlayer.play(audioSource);
+    Timer(Duration(seconds: 10), () {
+      _audioPlayer.pause();
+      print('Reproducción pausada después de 10 segundos');
+    });
+
+  } catch (e) {
+    print('Error reproduciendo la canción: $e');
+  }
+}
+
+class _DisplayVideo extends StatefulWidget {
+  final String videoUrl;
+  const _DisplayVideo({Key? key, required this.videoUrl}) : super(key: key);
+
+  @override
+  State<_DisplayVideo> createState() => _DisplayVideoState();
+}
+
+class _DisplayVideoState extends State<_DisplayVideo> {
+  late VideoPlayerController controller;
+  late Future<void> initializeVideoPlayerFuture;
+
+
+
+  @override
+  void initState() {
+    super.initState();
+    var url = Uri.parse(widget.videoUrl);
+    controller = VideoPlayerController.networkUrl(url);
+    initializeVideoPlayerFuture = controller.initialize();
+    controller.setLooping(true);
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: initializeVideoPlayerFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return SizedBox(
+              width: 312,
+              height: 200,
+              child:
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20.0),
+        child:
+            Stack(
+            alignment: Alignment.center,
+            children: [
+          AspectRatio(
+          aspectRatio: controller.value.aspectRatio,
+            child: VideoPlayer(controller),
+          ),
+              Align(
+                alignment: Alignment.center,
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      if (controller.value.isPlaying) {
+                        controller.pause();
+                      } else {
+                        controller.play();
+                      }
+                    });
+                  },
+                  child: Icon(
+                    controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: Colors.white,
+                    size: 45,
+                  ),
+                ),
+              ),
+          ]
+        )
+            )
+            );
+
+        } else {
+          return Center(child: CircularProgressIndicator());
+        }
+      },
     );
   }
 }

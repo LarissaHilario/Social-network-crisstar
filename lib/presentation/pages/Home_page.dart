@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:red_social/presentation/components/Post_card.page.dart';
 import 'package:red_social/presentation/pages/Init_page.dart';
+import 'package:red_social/presentation/pages/choose_photo_page.dart';
 
 import '../providers/post_provider.dart';
 
@@ -16,6 +18,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+  @override
+  void initState() {
+    super.initState();
+
+    var postProvider = Provider.of<PostProvider>(context, listen: false);
+    postProvider.getPosts('post');
+  }
+
+
+
   Future<void> _logout() async {
     await FirebaseAuth.instance.signOut();
     Navigator.pushReplacement(
@@ -26,7 +39,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var post = context.watch<PostProvider>();
+    var postProvider = context.watch<PostProvider>();
     return Scaffold(
       body: Column(
         children: [
@@ -60,7 +73,7 @@ class _HomePageState extends State<HomePage> {
                       _logout();
                     },
                   ),
-                  ProfilePicture(
+                  const ProfilePicture(
                     name: 'Aditya Dharmawan Saputra',
                     radius: 20,
                     fontsize: 16,
@@ -70,7 +83,11 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Expanded(
-            child: PostCardPage(post.postList),
+            child: postProvider.postList.isNotEmpty
+                ? PostCardPage(postProvider.postList)
+                : postProvider.errorMessage.isNotEmpty
+                ? Center(child: Text(postProvider.errorMessage))
+                : const Center(child: CircularProgressIndicator()),
           ),
           Align(
             alignment: Alignment.bottomCenter,
@@ -104,7 +121,14 @@ class _HomePageState extends State<HomePage> {
                         width: 40,
                         height: 40,
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ChoosePhotoPage(),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
