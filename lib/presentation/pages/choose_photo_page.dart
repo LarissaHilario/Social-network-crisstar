@@ -153,7 +153,7 @@ class _DisplayImagesState extends State<DisplayImages> {
         isVideo: !selectedByte.isThatImage,
         songUrl: selectedSongUrl,
       );
-      print('select $selectedSongUrl');
+      print('selectt $selectedSongUrl');
 
       await CreatePostUseCase(_postRepository).execute('post', post);
       Navigator.pushReplacement(
