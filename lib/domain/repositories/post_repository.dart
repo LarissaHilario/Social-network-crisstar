@@ -6,4 +6,6 @@ abstract class PostRepository {
   Future<List<PostModel>> getPostsCollection(String collectionName);
   Future<void> addPostToCollection(String collectionName, PostModel post);
   Future<String> uploadFile(File file, bool isVideo);
+  Future<List<String>> getSongUrls();
+
 }

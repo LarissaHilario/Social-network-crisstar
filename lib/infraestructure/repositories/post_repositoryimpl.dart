@@ -19,7 +19,8 @@ class PostRepositoryImpl extends PostRepository {
   }
 
   @override
-  Future<void> addPostToCollection(String collectionName, PostModel post) async {
+  Future<void> addPostToCollection(String collectionName,
+      PostModel post) async {
     try {
       await _postFirestore.addPostToCollection(collectionName, post);
     } catch (e) {
@@ -32,7 +33,8 @@ class PostRepositoryImpl extends PostRepository {
     try {
       Reference storageRef = FirebaseStorage.instance
           .ref()
-          .child('${isVideo ? 'videos' : 'images'}/${DateTime.now().toString()}');
+          .child(
+          '${isVideo ? 'videos' : 'images'}/${DateTime.now().toString()}');
       UploadTask uploadTask = storageRef.putFile(file);
       TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
       String downloadURL = await taskSnapshot.ref.getDownloadURL();
@@ -44,4 +46,34 @@ class PostRepositoryImpl extends PostRepository {
   }
 
 
+  @override
+  Future<List<String>> getSongUrls() async {
+    final FirebaseStorage _storage = FirebaseStorage.instance;
+    final Reference directory = _storage.ref('music');
+    List<String> songUrls = [];
+
+    try {
+      final ListResult result = await directory.listAll();
+
+      print('Total de elementos en el directorio de música: ${result.items
+          .length}');
+
+      await Future.forEach(result.items, (Reference ref) async {
+        try {
+          final String downloadUrl = await ref.getDownloadURL();
+          songUrls.add(downloadUrl);
+        } catch (e) {
+          print('Error al obtener la URL de descarga para ${ref.name}: $e');
+        }
+      });
+    } catch (e) {
+      print('Error al listar elementos en el directorio de música: $e');
+    }
+
+    print('URLs de canciones encontradas: $songUrls');
+    return songUrls;
+  }
 }
+
+
+

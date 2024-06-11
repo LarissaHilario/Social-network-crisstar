@@ -9,6 +9,8 @@ class PostModel {
     required this.ubicacion,
     required this.img,
     required this.isVideo,
+    required this.songUrl,
+
 
   });
 
@@ -17,6 +19,7 @@ class PostModel {
   String ubicacion;
   String img;
   bool isVideo;
+  String songUrl;
 
   factory PostModel.fromMap(Map<String, dynamic> json) => PostModel(
     name: json['name'],
@@ -24,6 +27,7 @@ class PostModel {
     descripcion: json['descripcion'],
     img: json['img'],
     isVideo: json['isVideo'],
+    songUrl: json['songUrl']
 
   );
 
@@ -33,6 +37,7 @@ class PostModel {
     'descripcion': descripcion,
     'img': img,
     'isVideo': isVideo,
+    'songUrl': songUrl
   };
 
   factory PostModel.fromFirestore(DocumentSnapshot documentSnapshot) {

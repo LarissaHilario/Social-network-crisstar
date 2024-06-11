@@ -1,30 +1,72 @@
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker_plus/image_picker_plus.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:red_social/infraestructure/repositories/Firebase_db.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:image_picker_plus/image_picker_plus.dart';
 import 'package:red_social/presentation/pages/Home_page.dart';
 import 'package:video_player/video_player.dart';
-
 import '../../domain/models/Post_model.dart';
+import '../../domain/models/song_model.dart';
 import '../../domain/uses_cases/create_post_usecase.dart';
+import '../../infraestructure/repositories/Firebase_db.dart';
 import '../../infraestructure/repositories/post_repositoryimpl.dart';
 import '../components/post_form_fields.dart';
 
 class ChoosePhotoPage extends StatefulWidget {
   const ChoosePhotoPage({Key? key}) : super(key: key);
+
   @override
   State<ChoosePhotoPage> createState() => _ChoosePhotoPageState();
 }
 
 class _ChoosePhotoPageState extends State<ChoosePhotoPage> {
+  final PostRepositoryImpl _postRepository = PostRepositoryImpl(FirebaseConnection());
+  late List<Song> _songs = [];
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    _loadSongs();
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
       _openImagePicker();
     });
+    print('Songs: ${_songs.length}');
+  }
+
+  Future<void> _loadSongs() async {
+    try {
+      List<Song> songs = await _fetchSongs();
+      setState(() {
+        _songs = songs;
+      });
+    } catch (e) {
+      print('Error al cargar las canciones: $e');
+    }
+  }
+
+  Future<List<Song>> _fetchSongs() async {
+    List<Song> songs = [];
+    firebase_storage.ListResult result = await firebase_storage.FirebaseStorage.instance.ref('music/').listAll();
+
+    for (var ref in result.items) {
+      String url = await ref.getDownloadURL();
+      String name = _processSongName(ref.name);
+      songs.add(Song(name, url));
+    }
+    return songs;
+  }
+
+  String _processSongName(String originalName) {
+    if (originalName.toLowerCase().contains('flow')) {
+      return 'Flow';
+    } else if (originalName.toLowerCase().contains('chill')) {
+      return 'For her chill upbeat';
+    } else if (originalName.toLowerCase().contains('dark')) {
+      return 'Dark ambient';
+    } else {
+      return originalName;
+    }
   }
 
   Future<void> _openImagePicker() async {
@@ -48,6 +90,7 @@ class _ChoosePhotoPageState extends State<ChoosePhotoPage> {
             selectedBytes: details.selectedFiles,
             details: details,
             aspectRatio: details.aspectRatio,
+            songs: _songs,
           );
         },
       ),
@@ -69,12 +112,14 @@ class DisplayImages extends StatefulWidget {
   final List<SelectedByte> selectedBytes;
   final double aspectRatio;
   final SelectedImagesDetails details;
+  final List<Song> songs;
 
   const DisplayImages({
     Key? key,
     required this.details,
     required this.selectedBytes,
     required this.aspectRatio,
+    required this.songs,
   }) : super(key: key);
 
   @override
@@ -85,8 +130,17 @@ class _DisplayImagesState extends State<DisplayImages> {
   final TextEditingController _ubicacionController = TextEditingController();
   final TextEditingController _descripcionController = TextEditingController();
   final PostRepositoryImpl _postRepository = PostRepositoryImpl(FirebaseConnection());
+  late AudioPlayer _audioPlayer;
+  int _selectedSongIndex = -1;
 
-  Future<void> _sharePost() async {
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer();
+    print("AudioPlayer inicializado");
+  }
+
+  Future<void> _sharePost(String selectedSongUrl) async {
     try {
       SelectedByte selectedByte = widget.selectedBytes[0];
       String mediaUrl = await _postRepository.uploadFile(selectedByte.selectedFile, !selectedByte.isThatImage);
@@ -97,17 +151,22 @@ class _DisplayImagesState extends State<DisplayImages> {
         ubicacion: _ubicacionController.text,
         img: mediaUrl,
         isVideo: !selectedByte.isThatImage,
+        songUrl: selectedSongUrl,
       );
+      print('select $selectedSongUrl');
 
       await CreatePostUseCase(_postRepository).execute('post', post);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
+
       );
     } catch (e) {
       print('Error al compartir el post: $e');
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -118,31 +177,39 @@ class _DisplayImagesState extends State<DisplayImages> {
         child: ListView.builder(
           itemBuilder: (context, index) {
             SelectedByte selectedByte = widget.selectedBytes[index];
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  selectedByte.isThatImage
-                      ? ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: SizedBox(
-                      width: 312,
-                      height: 200,
-                      child: Image.file(selectedByte.selectedFile, fit: BoxFit.cover),
-                    ),
-                  )
-                      : _DisplayVideo(selectedByte: selectedByte),
-                  const SizedBox(height: 20),
-                  PostFormFields(
+            return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedSongIndex = index;
+
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      selectedByte.isThatImage
+                          ? ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: SizedBox(
+                          width: 312,
+                          height: 200,
+                          child: Image.file(selectedByte.selectedFile, fit: BoxFit.cover),
+                        ),
+                      )
+                          : _DisplayVideo(selectedByte: selectedByte),
+                      const SizedBox(height: 20),
+                      PostFormFields(
                     descripcionController: _descripcionController,
                     ubicacionController: _ubicacionController,
                     onShare: _sharePost,
+                    songs: widget.songs,
                   ),
                 ],
               ),
-            );
+            ));
           },
           itemCount: widget.selectedBytes.length,
         ),

@@ -1,15 +1,21 @@
+import 'dart:async';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:red_social/domain/models/Post_model.dart';
 import 'package:video_player/video_player.dart';
+late AudioPlayer _audioPlayer;
 
 class PostCardPage extends StatelessWidget {
   PostCardPage(this._postList, {Key? key}) : super(key: key);
 
   final List<PostModel> _postList;
 
+
   @override
   Widget build(BuildContext context) {
+    _audioPlayer = AudioPlayer();
     return Container(
       margin: const EdgeInsets.all(10.0),
       padding: const EdgeInsets.all(10.0),
@@ -53,7 +59,13 @@ class PostCardPage extends StatelessWidget {
                             ]),
                             post.isVideo
                                 ? _DisplayVideo(videoUrl: post.img)
-                                : Align(
+                                :  GestureDetector(
+                        onTap: () {
+                        _playSong(post.songUrl);
+                        },
+                        child:
+
+                            Align(
                                     alignment: Alignment.center,
                                     child: Padding(
                                       padding: const EdgeInsets.only(
@@ -72,6 +84,7 @@ class PostCardPage extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                            ),
                             Padding(
                               padding: const EdgeInsets.only(
                                   right: 14, top: 8, bottom: 8, left: 14),
@@ -91,6 +104,20 @@ class PostCardPage extends StatelessWidget {
             ])
           : CircularProgressIndicator(),
     );
+  }
+}
+void _playSong(String songUrl) async {
+  try {
+    var url = Uri.parse(songUrl);
+    Source audioSource = UrlSource(songUrl);
+    await _audioPlayer.play(audioSource);
+    Timer(Duration(seconds: 10), () {
+      _audioPlayer.pause();
+      print('Reproducción pausada después de 10 segundos');
+    });
+
+  } catch (e) {
+    print('Error reproduciendo la canción: $e');
   }
 }
 
